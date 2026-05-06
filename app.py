@@ -42,7 +42,32 @@ def submit():
     cur.close()
     return jsonify({'message': new_message})
 
+# New Webhook Route
+@app.route('/github-webhook/', methods=['POST'])
+def handle_webhook():
+    # GitHub sends data as JSON
+    data = request.json
+    
+    if data:
+        pusher = data.get('pusher', {}).get('name', 'Unknown')
+        repo = data.get('repository', {}).get('full_name', 'Unknown')
+        commit_msg = data.get('head_commit', {}).get('message', 'No commit message')
+        
+        log_entry = f"GitHub Webhook: {pusher} pushed to {repo} - '{commit_msg}'"
+        print(f"✅ {log_entry}")
+        
+        # Automatically insert the webhook event into your database
+        try:
+            cur = mysql.connection.cursor()
+            cur.execute('INSERT INTO messages (message) VALUES (%s)', [log_entry])
+            mysql.connection.commit()
+            cur.close()
+            return jsonify({'status': 'success', 'received': log_entry}), 200
+        except Exception as e:
+            return jsonify({'status': 'error', 'message': str(e)}), 500
+    else:
+        return jsonify({'status': 'invalid payload'}), 400
+
 if __name__ == '__main__':
     init_db()
     app.run(host='0.0.0.0', port=5000, debug=True)
-
