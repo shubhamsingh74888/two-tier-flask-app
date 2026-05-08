@@ -14,7 +14,7 @@ pipeline{
                }
             }
         }
-        stage("Deploy"){
+        stage("Deploy-(master node - defalut"){
             agent { label "master-node"}
             steps{
                 script{
