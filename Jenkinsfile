@@ -17,9 +17,10 @@ pipeline{
         stage("Deploy"){
             agent { label "master-node"}
             steps{
+                script{
                 deploy("flask-app","latest","shubham74888")
             }
-        }
-     }
+         }
+    }
    }
 }
